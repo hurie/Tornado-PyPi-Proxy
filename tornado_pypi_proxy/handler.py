@@ -532,7 +532,7 @@ class PackageHandler(tornado.web.RequestHandler):
         self.write_upstream = write_upstream
         self.finalize_upstream = finalize_upstream
 
-        self.fetch_index(package_name, self.load_local(package_name))
+        self.fetch_index(package_name, {x.name for x in self.load_local(package_name)})
 
     def on_connection_close(self):
         app_log.debug('client connection close')
