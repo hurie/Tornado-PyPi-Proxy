@@ -281,7 +281,7 @@ class PackageHandler(tornado.web.RequestHandler):
 
         try:
             if response.code != 200:
-                app_log.warning('Error while getting proxy info for: %s '
+                app_log.warning('Error while getting remote %s '
                                 'Errors details: (%s: %s) %s', response.effective_url,
                                 response.code, response.reason, response.body)
                 return
@@ -319,7 +319,7 @@ class PackageHandler(tornado.web.RequestHandler):
 
     def parse_index(self, response):
         if response.code != 200:
-            app_log.warning('Error while getting proxy info for: %s '
+            app_log.warning('Error while getting index %s '
                             'Errors details: (%s: %s) %s', response.effective_url,
                             response.code, response.reason, response.body)
             self.finalize_upstream()
@@ -412,8 +412,7 @@ class PackageHandler(tornado.web.RequestHandler):
             if not package_folder.exists():
                 continue
 
-            app_log.debug('loading package %s in %s',
-                          package_name, package_folder)
+            app_log.info('loading package %s in %s', package_name, package_folder)
 
             for filename in package_folder.glob('*.md5'):
                 with filename.open() as f:
