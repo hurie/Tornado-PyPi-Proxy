@@ -1,0 +1,44 @@
+server:
+  port: 8000
+
+daemon:
+  pid: tornado-pypi-proxy.pid
+
+package:
+  cache_dir: pypi-cache
+  upload_dir: pypi-upload
+
+transload:
+  timeout: 3600
+
+index:
+  base: https://pypi.python.org/simple/
+  depth: 1
+  lifetime: 1
+
+logging:
+  version: 1
+  disable_existing_loggers: no
+  formatters:
+    simple:
+      format: '%(levelname)s: %(message)s'
+    verbose:
+      format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: simple
+    file:
+      class: logging.handlers.TimedRotatingFileHandler
+      level: DEBUG
+      formatter: verbose
+      filename: tornado-pypi-proxy.log
+      when: w6
+      interval: 1
+      backupCount: 5
+  root:
+    handlers:
+    - console
+    - file
+    level: INFO
