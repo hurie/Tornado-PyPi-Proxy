@@ -18,7 +18,7 @@ setup(
     name='Tornado-Pypi-Proxy',
     version=VERSION,
     description='A tornado base Pypi proxy',
-    long_description=open('README.rst').read(),
+    long_description=open('README.md').read(),
     author='A. Azhar Mashuri',
     author_email='hurie83@gmail.com',
     url='https://github.com/hurie83/Tornado-PyPi-Proxy',
