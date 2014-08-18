@@ -3,13 +3,13 @@ Created on Aug 15, 2014
 
 @author: Azhar
 """
-from collections import namedtuple, OrderedDict
-import hashlib
 import pickle
 from time import time
-from os.path import getmtime, basename
 from urllib.parse import urljoin, urlsplit, parse_qs, urlunsplit, urlencode
 
+from collections import namedtuple, OrderedDict
+import hashlib
+from os.path import getmtime, basename
 from bs4 import BeautifulSoup
 from pathlib import Path
 from tornado.httpclient import AsyncHTTPClient
