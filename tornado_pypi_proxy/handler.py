@@ -249,16 +249,16 @@ class PackageHandler(tornado.web.RequestHandler):
         url = url.lower()
         return url.endswith(self.extensions)
 
-    def add_version(self, name, md5, url, cache, href):
-        data = PackageData(name, md5, url, cache)
-        if data.name not in self.package_versions and data.name not in self.local_versions:
-            app_log.debug('add %s', href)
-            self.package_versions[data.name] = data
-            self.write_upstream(data)
-            return data
-        # else:
-        # app_log.debug('added %s', href)
-        return None
+    def add_version(self, name, md5, url, href):
+        if name in self.package_versions:
+            return
+
+        app_log.debug('add %s', href)
+
+        data = PackageData(name, md5, url, -1 if name in self.local_versions else 0)
+        self.package_versions[data.name] = data
+        self.write_upstream(data)
+        app_log.debug(data)
 
     def add_link(self, url, split, base, href):
         if self._finished or self.depth >= self.cfg['depth']:
@@ -293,7 +293,7 @@ class PackageHandler(tornado.web.RequestHandler):
             if content_type in ('application/x-gzip',):
                 # in this case the URL was a redirection to download
                 # a package. For example, sourceforge.
-                self.add_version(basename(base.path), '', base_url, 0, base_url)
+                self.add_version(basename(base.path), '', base_url, base_url)
                 return
 
             if not response.body:
@@ -311,7 +311,7 @@ class PackageHandler(tornado.web.RequestHandler):
                 current = urlsplit(current_url)
 
                 if self.is_archive(current.path):
-                    self.add_version(basename(current.path), '', current_url, 0, href)
+                    self.add_version(basename(current.path), '', current_url, href)
                 else:
                     self.add_link(current_url, current, base, href)
         finally:
@@ -355,7 +355,7 @@ class PackageHandler(tornado.web.RequestHandler):
                     if 'md5' in fragment:
                         md5 = fragment['md5'][0]
 
-                self.add_version(pkg_name, md5, href, 0, href)
+                self.add_version(pkg_name, md5, href, href)
 
             elif href not in self.visited_links and self.cfg['depth'] > 0:
                 app_log.debug('found %s', href)
@@ -372,7 +372,6 @@ class PackageHandler(tornado.web.RequestHandler):
 
         self.links = []
         self.depth = 0
-        self.package_name = package_name
         self.local_versions = local_versions
         self.client = AsyncHTTPClient()
 
@@ -496,6 +495,7 @@ class PackageHandler(tornado.web.RequestHandler):
 
         versions = self.load_cache(package_path)
         if versions is None:
+            self.package_name = package_name
             self.fetch_index(package_name, local_versions)
             return
         # else:
@@ -503,8 +503,7 @@ class PackageHandler(tornado.web.RequestHandler):
 
         self.package_name = package_name
         for data in versions:
-            if data.name not in local_versions:
-                self.write_upstream(data)
+            self.write_upstream(data)
 
         self.finalize_upstream()
 
@@ -512,12 +511,19 @@ class PackageHandler(tornado.web.RequestHandler):
         if self.reload_only:
             return
 
-        self.write('''
+        app_log.debug(data)
+        if data.cache == 0:
+            self.write('''
     <li>
         <a href="{url}?{link}">{name}</a>
     </li>'''.format(url=self.reverse_url('remote', '/'.join([self.package_name, data.name])),
                     link=urlencode({'link': data.link}),
                     name=data.name))
+        else:
+            self.write('''
+    <li>
+        {name}
+    </li>'''.format(name=data.name))
 
     def finalize_upstream(self):
         if self._finished:
@@ -537,6 +543,7 @@ class PackageHandler(tornado.web.RequestHandler):
         package_name = app.normalize_name(package_name)
 
         self.reload_only = True
+        self.package_name = package_name
         self.fetch_index(package_name, {x.name for x in self.load_local(package_name)})
 
     def on_connection_close(self):
