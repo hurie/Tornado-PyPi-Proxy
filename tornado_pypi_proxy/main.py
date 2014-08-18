@@ -10,6 +10,7 @@ import logging.config
 import os
 from datetime import timedelta
 
+import hashlib
 import pathlib
 from pathlib import Path
 from tornado.log import app_log
@@ -22,6 +23,7 @@ import yaml
 
 
 logging.basicConfig()
+_log = logging.getLogger(__name__)
 
 CONFIG_FILENAME = 'tornado-pypi-proxy.yml'
 
@@ -289,6 +291,39 @@ def execute(args, cfg, daemon=None):
     return True
 
 
+def hash_pkg(args, cfg):
+    try:
+        for base in [Path(cfg['package']['cache_dir']),
+                     Path(cfg['package']['upload_dir'])]:
+
+            digest_base = []
+            for path in base.iterdir():
+                if not path.is_dir():
+                    continue
+                _log.info('scanning %s', path)
+
+                digests = []
+                for file in path.iterdir():
+                    if not file.is_file() or file.name in ['.cache', '.md5']:
+                        continue
+
+                    md5 = hashlib.md5(file.open('rb').read()).hexdigest()
+
+                    digests.append('{} *{}'.format(md5, file.relative_to(path)))
+                    digest_base.append('{} *{}'.format(md5, file.relative_to(base)))
+
+                md5file = path / '.md5'
+                with md5file.open('w') as f:
+                    f.write('\n'.join(digests))
+
+            md5file = base / 'checksums.md5'
+            with md5file.open('w') as f:
+                f.write('\n'.join(digest_base))
+
+    except FileNotFoundError as e:
+        _log.error(e)
+
+
 def main():
     # daemon mode is optional if OS is not windows and daemonocle is found
     if os.name == 'nt':
@@ -333,6 +368,9 @@ def main():
     cmd.add_argument('--replace', default=False, action='store_true')
     cmd.set_defaults(cmd='setup')
 
+    cmd = subparsers.add_parser('calculate')
+    cmd.set_defaults(cmd='calculate')
+
     # parse
     args = parser.parse_args()
 
@@ -370,7 +408,11 @@ def main():
         )
 
     # execute command
-    if not execute(args, cfg, daemon):
+    if args.cmd == 'calculate':
+        setup_logging(cfg)
+        hash_pkg(args, cfg)
+
+    elif not execute(args, cfg, daemon):
         parser.error('unable to create daemon')
 
 
