@@ -239,6 +239,7 @@ class PackageHandler(tornado.web.RequestHandler):
     extensions = source_extensions + binary_extensions + others_extensions
 
     def prepare(self):
+        self.reload_only = False
         self.cfg = self.application.settings['index']
 
     def is_archive(self, url):
@@ -384,7 +385,8 @@ class PackageHandler(tornado.web.RequestHandler):
 
     def fetch_next(self):
         while self.links:
-            self.flush()
+            if not self.reload_only:
+                self.flush()
 
             url, depth = self.links.pop(0)
             app_log.debug('fetch %s', url)
@@ -505,6 +507,9 @@ class PackageHandler(tornado.web.RequestHandler):
         self.finalize_upstream()
 
     def write_upstream(self, data):
+        if self.reload_only:
+            return
+
         self.write('''
     <li>
         <a href="{url}?{link}">{name}</a>
@@ -513,7 +518,10 @@ class PackageHandler(tornado.web.RequestHandler):
                     name=data.name))
 
     def finalize_upstream(self):
-        self.finish('''
+        if self.reload_only:
+            self.redirect(self.reverse_url('package', self.package_name)[:-1])
+        else:
+            self.finish('''
 </ul>
 </body>
 </html>''')
@@ -523,15 +531,7 @@ class PackageHandler(tornado.web.RequestHandler):
         app = self.application
         package_name = app.normalize_name(package_name)
 
-        def write_upstream(data):
-            return
-
-        def finalize_upstream():
-            self.redirect(self.reverse_url('package', package_name)[:-1])
-
-        self.write_upstream = write_upstream
-        self.finalize_upstream = finalize_upstream
-
+        self.reload_only = True
         self.fetch_index(package_name, {x.name for x in self.load_local(package_name)})
 
     def on_connection_close(self):
