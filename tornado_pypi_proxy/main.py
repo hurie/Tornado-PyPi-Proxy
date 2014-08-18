@@ -186,18 +186,22 @@ def setup(args):
     cache_dir = root / cache_dir
     if not cache_dir.exists():
         cache_dir.mkdir(parents=True)
+    cache_dir = cache_dir.resolve()
 
     upload_dir = root / upload_dir
     if not upload_dir.exists():
         upload_dir.mkdir(parents=True)
+    upload_dir = upload_dir.resolve()
 
     pid_path = root / pid_path
     if not pid_path.parent.exists():
         pid_path.parent.mkdir(parents=True)
+    pid_path = pid_path.parent.resolve() / pid_path.name
 
     log_dir = root / log_dir
     if not log_dir.exists():
         log_dir.mkdir(parents=True)
+    log_dir = log_dir.resolve()
 
     template_cfg['server']['port'] = port
     template_cfg['package']['cache_dir'] = str(cache_dir)
