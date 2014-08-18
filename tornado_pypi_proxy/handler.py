@@ -261,7 +261,7 @@ class PackageHandler(tornado.web.RequestHandler):
         return None
 
     def add_link(self, url, split, base, href):
-        if self.links is False or self.depth >= self.cfg['depth']:
+        if self._finished or self.depth >= self.cfg['depth']:
             return
 
         strip_url = urlunsplit((split.scheme, split.netloc, split.path, None, None))
@@ -275,7 +275,7 @@ class PackageHandler(tornado.web.RequestHandler):
         self.links.append((url, self.depth + 1))
 
     def parse_remote(self, response):
-        if self.links is False:
+        if self._finished:
             app_log.info('connection canceled')
             return
 
@@ -325,7 +325,7 @@ class PackageHandler(tornado.web.RequestHandler):
             self.finalize_upstream()
             return
 
-        if self.links is False:
+        if self._finished:
             app_log.info('connection canceled')
             return
 
@@ -384,6 +384,9 @@ class PackageHandler(tornado.web.RequestHandler):
         self.client_fetch = self.client.fetch(url, callback=self.parse_index)
 
     def fetch_next(self):
+        if self._finished:
+            return
+
         while self.links:
             if not self.reload_only:
                 self.flush()
@@ -518,6 +521,9 @@ class PackageHandler(tornado.web.RequestHandler):
                     name=data.name))
 
     def finalize_upstream(self):
+        if self._finished:
+            return
+
         if self.reload_only:
             self.redirect(self.reverse_url('package', self.package_name)[:-1])
         else:
@@ -536,5 +542,4 @@ class PackageHandler(tornado.web.RequestHandler):
 
     def on_connection_close(self):
         app_log.debug('client connection close')
-        self.links = False
         self.finish()
