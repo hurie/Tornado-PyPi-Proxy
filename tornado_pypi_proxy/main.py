@@ -233,6 +233,9 @@ def execute(args, cfg, daemon=None):
 
         application = Application(cfg, args.debug)
 
+        if args.debug:
+            args.level = logging.DEBUG
+
         # setup logging level if specify
         if args.level is not None:
             logging.root.setLevel(args.level)
