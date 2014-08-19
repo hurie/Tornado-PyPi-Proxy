@@ -255,9 +255,13 @@ class PackageHandler(tornado.web.RequestHandler):
 
         app_log.debug('add %s', href)
 
-        data = PackageData(name, md5, url, -1 if name in self.local_versions else 0)
+        data = PackageData(name, md5, url, 0)
         self.package_versions[data.name] = data
+
+        if data.name in self.local_versions:
+            data = PackageData(*data[:-1], cache=-1)
         self.write_upstream(data)
+
         app_log.debug(data)
 
     def add_link(self, url, split, base, href):
@@ -503,6 +507,8 @@ class PackageHandler(tornado.web.RequestHandler):
 
         self.package_name = package_name
         for data in versions:
+            if data.name in local_versions:
+                data = PackageData(*data[:-1], cache=-1)
             self.write_upstream(data)
 
         self.finalize_upstream()
