@@ -132,12 +132,12 @@ class RemoteHandler(tornado.web.RequestHandler):
         upload_file = self.application.get_upload_path() / path
         if upload_file.exists():
             self.write_md5(upload_file)
-            self.redirect(self.reverse_url('cache', path), permanent=True)
+            self.redirect(self.reverse_url('cache', path))
             return
 
         if cache_file.exists():
             self.write_md5(cache_file)
-            self.redirect(self.reverse_url('cache', path), permanent=True)
+            self.redirect(self.reverse_url('cache', path))
             return
 
         link = self.get_argument('link', None)
