@@ -10,7 +10,6 @@ import logging.config
 import os
 from datetime import timedelta
 
-import hashlib
 import pathlib
 from pathlib import Path
 from tornado.log import app_log
@@ -19,6 +18,7 @@ import tornado.ioloop
 from tornado_pypi_proxy import yaml_anydict
 import tornado_pypi_proxy.template
 from tornado_pypi_proxy.handler import SimpleHandler, PackageHandler, CacheHandler, RemoteHandler, PypiHandler
+from tornado_pypi_proxy.util import Checksum
 import yaml
 
 
@@ -305,23 +305,16 @@ def hash_pkg(args, cfg):
                     continue
                 _log.info('scanning %s', path)
 
+                checksum = Checksum(path)
+
                 digests = []
-                for file in path.iterdir():
-                    if not file.is_file() or file.name in ['.cache', '.md5']:
-                        continue
+                for md5, file in checksum.iter_dir():
+                    digests.append(checksum.format(md5, file.relative_to(path)))
+                    digest_base.append(checksum.format(md5, file.relative_to(base)))
 
-                    md5 = hashlib.md5(file.open('rb').read()).hexdigest()
+                checksum.write(digests)
 
-                    digests.append('{} *{}'.format(md5, file.relative_to(path)))
-                    digest_base.append('{} *{}'.format(md5, file.relative_to(base)))
-
-                md5file = path / '.md5'
-                with md5file.open('w') as f:
-                    f.write('\n'.join(digests))
-
-            md5file = base / 'checksums.md5'
-            with md5file.open('w') as f:
-                f.write('\n'.join(digest_base))
+            Checksum(base).write(digest_base, 'checksums.md5')
 
     except FileNotFoundError as e:
         _log.error(e)
