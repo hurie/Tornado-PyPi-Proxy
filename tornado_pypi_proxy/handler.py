@@ -17,7 +17,7 @@ from tornado.log import app_log
 import tornado.web
 import tornado.gen
 from tornado_pypi_proxy.streaming_upload import StreamingFormDataHandler
-from tornado_pypi_proxy.util import Versioning
+from tornado_pypi_proxy.util import Versioning, Checksum
 
 
 PackageData = namedtuple('PackageData', ['name', 'md5', 'link', 'cache'])
@@ -42,8 +42,7 @@ class PypiHandler(StreamingFormDataHandler):
             raise tornado.web.HTTPError(417)
 
         app_log.debug('write md5')
-        with open(str(self._pkg_file) + '.md5', 'w') as f:
-            f.write(self._pkg_md5)
+        Checksum(self._pkg_file.parent).update(self._pkg_file, self._pkg_md5)
 
         self._need_md5 = False
 
@@ -78,11 +77,6 @@ class PypiHandler(StreamingFormDataHandler):
 
             self._pkg_file.rename(pkg_file)
 
-            md5old = self._pkg_file.withsuffix(self._pkg_file.suffix + '.md5')
-            if md5old.exist():
-                md5new = pkg_file.withsuffix(pkg_file.suffix + '.md5')
-                md5old.rename(md5new)
-
     def on_md5_digest_end(self):
         self._pkg_md5 = self._disp_buffer.decode()
         if self._need_md5:
@@ -104,9 +98,10 @@ class PypiHandler(StreamingFormDataHandler):
             self._pkg_fd.close()
 
         # md5_digest content not found
-        app_log.warn('md5_digest disposition not found')
-        self._pkg_md5 = self._pkg_diggest.hexdigest()
-        self.write_md5()
+        if self._need_md5:
+            app_log.warn('md5_digest disposition not found')
+            self._pkg_md5 = self._pkg_diggest.hexdigest()
+            self.write_md5()
 
 
 class CacheHandler(tornado.web.StaticFileHandler):
@@ -128,10 +123,7 @@ class CacheHandler(tornado.web.StaticFileHandler):
 
 class RemoteHandler(tornado.web.RequestHandler):
     def write_md5(self, file, md5=None):
-        with file.with_suffix(file.suffix + '.md5').open('w') as f:
-            if md5 is None:
-                md5 = hashlib.md5(file.open('rb').read())
-            f.write(md5.hexdigest())
+        Checksum(file.parent).update(file, md5)
 
     @tornado.web.asynchronous
     def get(self, path):
@@ -193,7 +185,7 @@ class RemoteHandler(tornado.web.RequestHandler):
 
     def process_finish(self, response):
         app_log.debug('%s done', self._file)
-        self.write_md5(self._file, self._md5)
+        self.write_md5(self._file, self._md5.hexdigest())
         self.finish()
 
 
@@ -417,11 +409,8 @@ class PackageHandler(tornado.web.RequestHandler):
 
             app_log.info('loading package %s in %s', package_name, package_folder)
 
-            for filename in package_folder.glob('*.md5'):
-                with filename.open() as f:
-                    md5 = f.read()
-
-                name = filename.stem
+            checksum = Checksum(package_folder)
+            for md5, name in checksum.iter():
                 data = PackageData(name, md5, None, cache)
                 files[name] = data
 
