@@ -26,6 +26,8 @@ class Versioning(LooseVersion):
                     break
             # app.logger.debug([sss, ssss, vstring])
             self.parse(vstring)
+        else:
+            self.version = []
 
     def parse(self, vstring):
         # I've given up on thinking I can reconstruct the version string
@@ -44,7 +46,7 @@ class Versioning(LooseVersion):
 
     def _cmp(self, other):
         if isinstance(other, str):
-            other = LooseVersion(other)
+            other = Versioning(other)
 
         for v_self, v_other in zip(self.version, other.version):
             if v_self < v_other:
