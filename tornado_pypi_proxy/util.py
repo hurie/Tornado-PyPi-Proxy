@@ -5,6 +5,9 @@ Created on Aug 15, 2014
 """
 from distutils.version import LooseVersion
 
+from collections import OrderedDict
+import hashlib
+
 
 class Versioning(LooseVersion):
     def __init__(self, vstring=None):
@@ -68,3 +71,84 @@ class Versioning(LooseVersion):
             return 1
 
         return 0
+
+
+class Checksum():
+    SEPARATOR = ' *'
+    CHUNK_SIZE = 64 * 1024
+
+    def __init__(self, path):
+        self.path = path
+        self.md5file = path / '.md5'
+
+    def format(self, md5, name):
+        return ''.join([md5, self.SEPARATOR, str(name)])
+
+    def digest(self, file):
+        md5hash = hashlib.md5()
+        with file.open('rb') as f:
+            chunk = f.read(self.CHUNK_SIZE)
+            while chunk:
+                md5hash.update(chunk)
+                chunk = f.read(self.CHUNK_SIZE)
+        return md5hash.hexdigest()
+
+    def update(self, file, digest=None):
+        md5data = OrderedDict()
+
+        if self.md5file.exists():
+            with self.md5file.open('r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith(';') or not line:
+                        continue
+
+                    md5, _, name = line.partition(self.SEPARATOR)
+                    md5data[name] = md5
+
+        if digest is not None:
+            md5data[file.name] = digest
+        else:
+            md5data[file.name] = self.digest(file)
+
+        hashdata = [self.format(md5, name) for name, md5 in md5data.items()]
+
+        with self.md5file.open('w') as f:
+            f.write('\n'.join(hashdata))
+
+    def iter(self):
+        if not self.md5file.exists():
+            return []
+
+        with self.md5file.open('r') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith(';') or not line:
+                    continue
+
+                md5, _, name = line.partition(' *')
+                yield md5, name
+
+    def iter_dir(self):
+        for file in self.path.iterdir():
+            if not file.is_file() or file.name in ['.cache', '.md5']:
+                continue
+
+            md5 = self.digest(file)
+            name = file.relative_to(self.path)
+
+            yield md5, file
+
+    def write(self, digests=None, md5file=None):
+        if digests is None:
+            digests = []
+            for md5, file in self.iter_dir():
+                digests.append(self.format(md5, file.relative_to(self.path)))
+
+        if md5file is None:
+            md5file = self.md5file
+        else:
+            md5file = self.path / md5file
+
+        with md5file.open('w') as f:
+            f.write('\n'.join(digests))
