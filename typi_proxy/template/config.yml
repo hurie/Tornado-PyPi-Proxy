@@ -2,7 +2,7 @@ server:
   port: 8000
 
 daemon:
-  pid: tpypi-proxy.pid
+  pid: typi-proxy.pid
 
 path:
   cache: pypi-cache
@@ -35,7 +35,7 @@ logging:
       class: logging.handlers.TimedRotatingFileHandler
       level: DEBUG
       formatter: verbose
-      filename: tpypi-proxy.log
+      filename: typi-proxy.log
       when: w6
       interval: 1
       backupCount: 5

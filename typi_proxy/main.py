@@ -24,7 +24,7 @@ from .util import Checksum, LoaderMapAsOrderedDict
 logging.basicConfig()
 _log = logging.getLogger(__name__)
 
-CONFIG_FILENAME = 'tpypi-proxy.yml'
+CONFIG_FILENAME = 'typi-proxy.yml'
 
 
 class Application(tornado.web.Application):
