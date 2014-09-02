@@ -30,6 +30,7 @@ setup(
     include_package_data=True,
     packages=[
         'typi_proxy',
+        'typi_proxy.template',
     ],
     package_data={'typi_proxy': [
         'template/config.yml',
