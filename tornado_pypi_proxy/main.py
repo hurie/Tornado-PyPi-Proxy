@@ -15,7 +15,7 @@ from tornado.log import app_log
 import tornado.web
 import tornado.ioloop
 from tornado_pypi_proxy import yaml_anydict
-import tornado_pypi_proxy.template
+from . import template
 from tornado_pypi_proxy.handler import SimpleHandler, PackageHandler, CacheHandler, RemoteHandler, PypiHandler
 from tornado_pypi_proxy.util import Checksum
 import yaml
@@ -74,7 +74,7 @@ def load_config(path):
     if not file.is_file():
         raise Exception('{} not found'.format(path))
 
-    default_file = Path(tornado_pypi_proxy.template.__file__).resolve().parent / 'config.yml'
+    default_file = Path(template.__file__).resolve().parent / 'config.yml'
     default_cfg = yaml.load(default_file.open('r'))
 
     try:
@@ -110,6 +110,7 @@ def setup_logging(cfg):
 def setup(args):
     config = os.getcwd() / Path(args.config if 'config' in args else CONFIG_FILENAME)
     root = config.parent
+    template_dir = Path(template.__file__).parent
 
     if not args.replace and config.exists():
         print('{} already exists'.format(config))
@@ -167,7 +168,7 @@ def setup(args):
     LoaderMapAsOrderedDict.load_map_as_anydict()
     yaml_anydict.dump_anydict_as_map(LoaderMapAsOrderedDict.anydict)
 
-    template_file = Path(tornado_pypi_proxy.template.__file__).resolve().parent / 'config.yml'
+    template_file = template_dir / 'config.yml'
     template_cfg = yaml.load(template_file.open('r'), Loader=LoaderMapAsOrderedDict)
 
     try:
