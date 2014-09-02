@@ -16,8 +16,9 @@ from tornado.httpclient import AsyncHTTPClient
 from tornado.log import app_log
 import tornado.web
 import tornado.gen
-from tornado_pypi_proxy.streaming_upload import StreamingFormDataHandler
-from tornado_pypi_proxy.util import Versioning, Checksum
+
+from .streaming_upload import StreamingFormDataHandler
+from .util import Versioning, Checksum
 
 
 PackageData = namedtuple('PackageData', ['name', 'md5', 'link', 'cache'])
@@ -46,6 +47,22 @@ class PypiHandler(StreamingFormDataHandler):
 
         self._need_md5 = False
 
+    def validate(self):
+        pkg_file = self.application.get_upload_path() / self._pkg_name / self._pkg_file.name
+        if not self.settings['package']:
+            return pkg_file
+
+        setting = self.settings['package'].get(self._pkg_name, {})
+        if not setting.get('update', True) and pkg_file.exists():
+            app_log.warn('updating package %s not allowed', self._pkg_file.name)
+
+            if pkg_file != self._pkg_file and self._pkg_file.exists():
+                self._pkg_file.unlink()
+
+            raise tornado.web.HTTPError(403)
+
+        return pkg_file
+
     def on_content_begin(self, data):
         # filename = str(self._disp_params['filename'])
         filename = self._disp_params['filename']
@@ -54,6 +71,8 @@ class PypiHandler(StreamingFormDataHandler):
             self._need_rename = True
         else:
             self._pkg_file = self.application.get_upload_path() / self._pkg_name / filename
+            self.validate()
+
             if not self._pkg_file.parent.exists():
                 self._pkg_file.parent.mkdir()
 
@@ -70,8 +89,9 @@ class PypiHandler(StreamingFormDataHandler):
     def on_name_end(self):
         self._pkg_name = self._disp_buffer.decode()
         if self._need_rename:
+            pkg_file = self.validate()
+
             app_log.debug('renaming file')
-            pkg_file = self.application.get_upload_path() / self._pkg_name / self._pkg_file.name
             if not pkg_file.parent.exists():
                 pkg_file.parent.mkdir()
 
