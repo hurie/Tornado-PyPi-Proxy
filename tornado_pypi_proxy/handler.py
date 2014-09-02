@@ -258,8 +258,12 @@ class PackageHandler(tornado.web.RequestHandler):
         if url is None:
             return False
 
-        url = url.lower()
-        return url.endswith(self.extensions)
+        url = urlsplit(url.lower()).path
+        urls = url.rsplit('/')
+        if urls:
+            url = urls[-1]
+
+        return url.endswith(self.extensions) and url.startswith(self.package_name)
 
     def add_version(self, name, md5, url, href):
         if name in self.package_versions:
