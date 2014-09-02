@@ -219,8 +219,13 @@ def setup(args):
 
         handler['filename'] = str(log_dir / fpath)
 
+    template_file = template_dir / 'config.template'
+    text = template_file.open('r').read()
+
     print('write configuration to {}'.format(config))
-    yaml.dump(template_cfg, config.open('w'), default_flow_style=False)
+    t = tornado.template.Template(text)
+    with config.open('w') as f:
+        f.write(t.generate(**template_cfg).decode())
 
 
 def execute(args, cfg, daemon=None):

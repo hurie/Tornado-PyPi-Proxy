@@ -1,0 +1,49 @@
+server:
+  port: {{ server.port }}
+
+daemon:
+  pid: {{ daemon.pid }}
+
+path:
+  cache: {{ path.cache }}
+  upload: {{ path.upload }}
+
+transload:
+  timeout: 3600
+
+index:
+  base: https://pypi.python.org/simple/
+  depth: 1
+  lifetime: 1
+
+package:
+#  <package-name>:
+#    update: <allow-override>
+#    base: <base-package>
+
+logging:
+  version: 1
+  disable_existing_loggers: no
+  formatters:
+    simple:
+      format: '%(levelname)s: %(message)s'
+    verbose:
+      format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: simple
+    file:
+      class: logging.handlers.TimedRotatingFileHandler
+      level: DEBUG
+      formatter: verbose
+      filename: {{ logging.handlers.file.filename }}
+      when: w6
+      interval: 1
+      backupCount: 5
+  root:
+    handlers:
+    - console
+    - file
+    level: INFO
