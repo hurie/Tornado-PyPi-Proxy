@@ -387,7 +387,10 @@ class PackageHandler(tornado.web.RequestHandler):
         self.fetch_next()
 
     def fetch_index(self, package_name, local_versions):
-        index_url = self.cfg['base']
+        index_url = self.cfg['package'].get(package_name, {}).get('base')
+        if not index_url:
+            index_url = self.cfg['base']
+
         if not index_url:
             self.finalize_upstream()
             return
