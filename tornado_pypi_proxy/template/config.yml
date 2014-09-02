@@ -2,11 +2,11 @@ server:
   port: 8000
 
 daemon:
-  pid: tornado-pypi-proxy.pid
+  pid: tpypi-proxy.pid
 
-package:
-  cache_dir: pypi-cache
-  upload_dir: pypi-upload
+path:
+  cache: pypi-cache
+  upload: pypi-upload
 
 transload:
   timeout: 3600
@@ -15,6 +15,8 @@ index:
   base: https://pypi.python.org/simple/
   depth: 1
   lifetime: 1
+
+package:
 
 logging:
   version: 1
@@ -33,7 +35,7 @@ logging:
       class: logging.handlers.TimedRotatingFileHandler
       level: DEBUG
       formatter: verbose
-      filename: tornado-pypi-proxy.log
+      filename: tpypi-proxy.log
       when: w6
       interval: 1
       backupCount: 5

@@ -43,13 +43,13 @@ class Application(tornado.web.Application):
                                          **cfg)
 
     def get_cache_path(self, package_name=None):
-        base = pathlib.Path(self.settings['package']['cache_dir'])
+        base = pathlib.Path(self.settings['path']['cache'])
         if package_name:
             return base / package_name
         return base
 
     def get_upload_path(self, package_name=None):
-        base = pathlib.Path(self.settings['package']['upload_dir'])
+        base = pathlib.Path(self.settings['path']['upload'])
         if package_name:
             return base / package_name
         return base
@@ -85,14 +85,14 @@ def load_config(path):
     merge_dict(default_cfg, cfg)
 
     cfg = default_cfg
-    cfg['path'] = str(file.parent)
+    cfg['path']['base'] = str(file.parent)
     return cfg
 
 
 def setup_logging(cfg):
     logging_cfg = cfg['logging']
 
-    path = Path(cfg['path'])
+    path = Path(cfg['path']['base'])
     for handler in logging_cfg['handlers'].values():
         fname = handler.get('filename')
         if fname is None:
@@ -173,8 +173,8 @@ def setup(args):
     try:
         port = ask('Port to listen', 'Port range is 0 - 65535', 5000, cast=int)
 
-        cache_dir = ask_path('Package cache directory', default=template_cfg['package']['cache_dir'])
-        upload_dir = ask_path('Uploaded package directory', default=template_cfg['package']['upload_dir'])
+        cache_dir = ask_path('Package cache directory', default=template_cfg['path']['cache'])
+        upload_dir = ask_path('Uploaded package directory', default=template_cfg['path']['upload'])
         pid_path = ask_file('Application pid file', default=template_cfg['daemon']['pid'])
         log_dir = ask_path('Application log path', default='.')
     except KeyboardInterrupt:
@@ -203,8 +203,8 @@ def setup(args):
     log_dir = log_dir.resolve()
 
     template_cfg['server']['port'] = port
-    template_cfg['package']['cache_dir'] = str(cache_dir)
-    template_cfg['package']['upload_dir'] = str(upload_dir)
+    template_cfg['path']['cache'] = str(cache_dir)
+    template_cfg['path']['upload'] = str(upload_dir)
     template_cfg['daemon']['pid'] = str(pid_path)
 
     for handler in template_cfg['logging']['handlers'].values():
@@ -293,8 +293,8 @@ def execute(args, cfg, daemon=None):
 
 def hash_pkg(args, cfg):
     try:
-        for base in [Path(cfg['package']['cache_dir']),
-                     Path(cfg['package']['upload_dir'])]:
+        for base in [Path(cfg['path']['cache']),
+                     Path(cfg['path']['upload'])]:
 
             digest_base = []
             for path in base.iterdir():
@@ -390,7 +390,7 @@ def main():
         try:
             pidfile = Path(cfg['daemon']['pid'])
             if not pidfile.is_absolute():
-                pidfile = (cfg['path'] / pidfile)
+                pidfile = (cfg['path']['base'] / pidfile)
         except Exception as e:
             parser.error(e)
             raise
