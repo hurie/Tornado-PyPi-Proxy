@@ -510,15 +510,15 @@ class PackageHandler(tornado.web.RequestHandler):
 
         local_versions = {x.name for x in local_versions}
 
+        self.package_name = package_name
+
         versions = self.load_cache(package_path)
         if versions is None:
-            self.package_name = package_name
             self.fetch_index(package_name, local_versions)
             return
         # else:
         # app_log.debug(versions)
 
-        self.package_name = package_name
         for data in versions:
             if data.name in local_versions:
                 data = PackageData(*data[:-1], cache=-1)
