@@ -339,7 +339,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', default=CONFIG_FILENAME)
     parser.add_argument('--logging', dest='level',
-                        choices=[v for k, v in logging._levelNames.items() if isinstance(k, int) and k != 0])
+                        choices=[v for k, v in logging._levelToName.items() if isinstance(k, int) and k != 0])
 
     subparsers = parser.add_subparsers()
 
