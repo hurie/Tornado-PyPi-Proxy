@@ -87,7 +87,7 @@ class PypiHandler(StreamingFormDataHandler):
         self._pkg_diggest.update(data)
 
     def on_name_end(self):
-        self._pkg_name = self._disp_buffer.decode()
+        self._pkg_name = self.application.normalize_name(self._disp_buffer.decode())
         if self._need_rename:
             pkg_file = self.validate()
 
