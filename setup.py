@@ -9,8 +9,8 @@ except ImportError:
 
 from typi_proxy import VERSION
 
-if sys.version_info < (3, 3):
-    sys.exit("requires python 3.3 and up")
+if sys.version_info < (3, 4):
+    sys.exit("requires python 3.4 and up")
 
 here = os.path.dirname(__file__)
 
@@ -25,7 +25,6 @@ setup(
     install_requires=[
         'PyYAML>=3.11',
         'beautifulsoup4>=4.3.2',
-        'pathlib>=1.0',
         'tornado>=4.0.1',
     ],
     include_package_data=True,

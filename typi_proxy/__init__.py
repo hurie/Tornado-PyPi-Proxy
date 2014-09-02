@@ -4,4 +4,4 @@ Created on Aug 15, 2014
 @author: Azhar
 """
 
-VERSION = '0.1.0'
+VERSION = '0.9.0'
