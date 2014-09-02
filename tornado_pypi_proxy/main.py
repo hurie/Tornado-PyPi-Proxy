@@ -4,7 +4,6 @@ Created on Aug 15, 2014
 @author: Azhar
 """
 import argparse
-from collections import OrderedDict
 import logging
 import logging.config
 import os
@@ -20,6 +19,7 @@ import tornado_pypi_proxy.template
 from tornado_pypi_proxy.handler import SimpleHandler, PackageHandler, CacheHandler, RemoteHandler, PypiHandler
 from tornado_pypi_proxy.util import Checksum
 import yaml
+from .util import LoaderMapAsOrderedDict
 
 
 logging.basicConfig()
@@ -164,11 +164,8 @@ def setup(args):
                 continue
             return path
 
-    class LoaderMapAsOrderedDict(yaml_anydict.LoaderMapAsAnydict, yaml.Loader):
-        anydict = OrderedDict
-
     LoaderMapAsOrderedDict.load_map_as_anydict()
-    yaml_anydict.dump_anydict_as_map(OrderedDict)
+    yaml_anydict.dump_anydict_as_map(LoaderMapAsOrderedDict.anydict)
 
     template_file = Path(tornado_pypi_proxy.template.__file__).resolve().parent / 'config.yml'
     template_cfg = yaml.load(template_file.open('r'), Loader=LoaderMapAsOrderedDict)
