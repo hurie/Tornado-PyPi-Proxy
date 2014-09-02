@@ -143,19 +143,23 @@ class CacheHandler(tornado.web.StaticFileHandler):
 
 class RemoteHandler(tornado.web.RequestHandler):
     def write_md5(self, file, md5=None):
+        app_log.debug('write md5 %s', file)
         Checksum(file.parent).update(file, md5)
 
     @tornado.web.asynchronous
     def get(self, path):
+        app_log.debug('proses %s', path)
         cache_file = self.application.get_cache_path() / path
 
         upload_file = self.application.get_upload_path() / path
         if upload_file.exists():
+            app_log.debug('found %s', upload_file)
             self.write_md5(upload_file)
             self.redirect(self.reverse_url('cache', path))
             return
 
         if cache_file.exists():
+            app_log.debug('found %s', cache_file)
             self.write_md5(cache_file)
             self.redirect(self.reverse_url('cache', path))
             return

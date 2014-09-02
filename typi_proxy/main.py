@@ -24,7 +24,7 @@ from .util import Checksum, LoaderMapAsOrderedDict
 logging.basicConfig()
 _log = logging.getLogger(__name__)
 
-CONFIG_FILENAME = 'tornado-pypi-proxy.yml'
+CONFIG_FILENAME = 'tpypi-proxy.yml'
 
 
 class Application(tornado.web.Application):
@@ -223,6 +223,8 @@ def setup(args):
 
     print('write configuration to {}'.format(config))
     t = tornado.template.Template(text)
+    # print(repr(t.generate(**template_cfg)))
+    # print(repr(t.generate(**template_cfg).decode()))
     with config.open('w') as f:
         f.write(t.generate(**template_cfg).decode())
 

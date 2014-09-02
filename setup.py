@@ -7,7 +7,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-from tornado_pypi_proxy import VERSION
+from typi_proxy import VERSION
 
 if sys.version_info < (3, 3):
     sys.exit("requires python 3.3 and up")
@@ -15,29 +15,30 @@ if sys.version_info < (3, 3):
 here = os.path.dirname(__file__)
 
 setup(
-    name='Tornado-Pypi-Proxy',
+    name='typi-proxy',
     version=VERSION,
     description='A tornado base Pypi proxy',
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
     author='A. Azhar Mashuri',
     author_email='hurie83@gmail.com',
-    url='https://github.com/hurie83/Tornado-PyPi-Proxy',
+    url='https://github.com/hurie83/typi-proxy',
     install_requires=[
-        'PyYAML==3.11',
-        'beautifulsoup4==4.3.2',
-        'pathlib==1.0',
-        'tornado==4.0.1',
+        'PyYAML>=3.11',
+        'beautifulsoup4>=4.3.2',
+        'pathlib>=1.0',
+        'tornado>=4.0.1',
     ],
     include_package_data=True,
     packages=[
-        'tornado_pypi_proxy',
+        'typi_proxy',
     ],
-    package_data={'tornado_pypi_proxy': [
+    package_data={'typi_proxy': [
         'template/config.yml',
+        'template/config.template',
     ]},
     entry_points={
         'console_scripts': [
-            'tornado-pypi-proxy = tornado_pypi_proxy.main:main',
+            'typi-proxy = typi_proxy.main:main',
         ],
     },
     zip_safe=False,
