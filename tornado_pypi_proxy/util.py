@@ -7,6 +7,8 @@ from distutils.version import LooseVersion
 
 from collections import OrderedDict
 import hashlib
+import yaml
+from . import yaml_anydict
 
 
 class Versioning(LooseVersion):
@@ -152,3 +154,25 @@ class Checksum():
 
         with md5file.open('w') as f:
             f.write('\n'.join(digests))
+
+
+class OrderedDictObj(OrderedDict):
+    def __getattr__(self, item):
+        try:
+            return OrderedDict.__getattribute__(self, item)
+        except AttributeError:
+            try:
+                return self.__getitem__(item)
+            except KeyError:
+                try:
+                    return self.__getitem__(item.replace('-', '_'))
+                except KeyError:
+                    raise AttributeError("'%s' object has no attribute '%s'", (self.__class__.__name__, item))
+
+
+class LoaderMapAsOrderedDict(yaml_anydict.LoaderMapAsAnydict, yaml.Loader):
+    anydict = OrderedDictObj
+
+    @classmethod  # and call this
+    def load_map_as_anydict(cls):
+        yaml.add_constructor('tag:yaml.org,2002:map', cls.construct_yaml_map)
