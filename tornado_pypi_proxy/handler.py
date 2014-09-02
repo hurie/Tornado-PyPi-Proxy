@@ -278,8 +278,6 @@ class PackageHandler(tornado.web.RequestHandler):
             data = PackageData(*data[:-1], cache=-1)
         self.write_upstream(data)
 
-        app_log.debug(data)
-
     def add_link(self, url, split, base, href):
         if self._finished or self.depth >= self.cfg['depth']:
             return
@@ -516,8 +514,6 @@ class PackageHandler(tornado.web.RequestHandler):
         if versions is None:
             self.fetch_index(package_name, local_versions)
             return
-        # else:
-        # app_log.debug(versions)
 
         for data in versions:
             if data.name in local_versions:
@@ -530,7 +526,6 @@ class PackageHandler(tornado.web.RequestHandler):
         if self.reload_only:
             return
 
-        app_log.debug(data)
         if data.cache == 0:
             self.write('''
     <li>
