@@ -3,11 +3,12 @@ Created on Aug 15, 2014
 
 @author: Azhar
 """
-from distutils.version import LooseVersion
-
-from collections import OrderedDict
 import hashlib
+from distutils.version import LooseVersion
+from collections import OrderedDict
+
 import yaml
+
 from . import yaml_anydict
 
 

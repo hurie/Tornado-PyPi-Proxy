@@ -10,16 +10,15 @@ import os
 from datetime import timedelta
 
 import pathlib
+import tornado.ioloop
+import tornado.web
+import yaml
 from pathlib import Path
 from tornado.log import app_log
-import tornado.web
-import tornado.ioloop
-from tornado_pypi_proxy import yaml_anydict
-from . import template
-from tornado_pypi_proxy.handler import SimpleHandler, PackageHandler, CacheHandler, RemoteHandler, PypiHandler
-from tornado_pypi_proxy.util import Checksum
-import yaml
-from .util import LoaderMapAsOrderedDict
+
+from . import template, yaml_anydict
+from .handler import SimpleHandler, PackageHandler, CacheHandler, RemoteHandler, PypiHandler
+from .util import Checksum, LoaderMapAsOrderedDict
 
 
 logging.basicConfig()

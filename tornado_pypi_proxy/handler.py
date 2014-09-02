@@ -3,19 +3,19 @@ Created on Aug 15, 2014
 
 @author: Azhar
 """
+import hashlib
 import pickle
+from collections import namedtuple, OrderedDict
+from os.path import getmtime, basename
 from time import time
 from urllib.parse import urljoin, urlsplit, parse_qs, urlunsplit, urlencode
 
-from collections import namedtuple, OrderedDict
-import hashlib
-from os.path import getmtime, basename
+import tornado.gen
+import tornado.web
 from bs4 import BeautifulSoup
 from pathlib import Path
 from tornado.httpclient import AsyncHTTPClient
 from tornado.log import app_log
-import tornado.web
-import tornado.gen
 
 from .streaming_upload import StreamingFormDataHandler
 from .util import Versioning, Checksum
