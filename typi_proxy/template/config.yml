@@ -1,5 +1,5 @@
 server:
-  port: 8000
+  port: 5000
 
 daemon:
   pid: typi-proxy.pid
@@ -20,7 +20,7 @@ package:
 
 logging:
   version: 1
-  disable_existing_loggers: no
+  disable_existing_loggers: false
   formatters:
     simple:
       format: '%(levelname)s: %(message)s'
