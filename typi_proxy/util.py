@@ -43,9 +43,11 @@ class Versioning(LooseVersion):
 
         components = []
         for component in self.component_re.split(vstring):
+            if not component or component == '.':
+                continue
             try:
                 components.append(int(component))
-            except ValueError:
+            except (ValueError, TypeError):
                 components.append(component)
 
         self.version = components
@@ -55,6 +57,12 @@ class Versioning(LooseVersion):
             other = Versioning(other)
 
         for v_self, v_other in zip(self.version, other.version):
+            t_self = type(v_self)
+            t_other = type(v_other)
+            if t_self != t_other:
+                if t_self is int:
+                    return -1
+                return 1
             if v_self < v_other:
                 return -1
             if v_self > v_other:
