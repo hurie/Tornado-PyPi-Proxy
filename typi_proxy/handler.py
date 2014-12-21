@@ -267,7 +267,7 @@ class PackageHandler(tornado.web.RequestHandler):
         if urls:
             url = urls[-1]
 
-        return url.endswith(self.extensions) and url.startswith(self.package_name)
+        return url.endswith(self.extensions) and url.replace('-', '_').startswith(self.package_name)
 
     def add_version(self, name, md5, url, href):
         if name in self.package_versions:
@@ -537,10 +537,15 @@ class PackageHandler(tornado.web.RequestHandler):
             return
 
         if data.cache == 0:
+            if data.name.replace('-', '_').startswith(self.package_name):
+                name = ''.join([self.package_name, data.name[len(self.package_name):]])
+            else:
+                name = data.name
+
             self.write('''
     <li>
         <a href="{url}?{link}">{name}</a>
-    </li>'''.format(url=self.reverse_url('remote', '/'.join([self.package_name, data.name])),
+    </li>'''.format(url=self.reverse_url('remote', '/'.join([self.package_name, name])),
                     link=urlencode({'link': data.link}),
                     name=data.name))
         else:
