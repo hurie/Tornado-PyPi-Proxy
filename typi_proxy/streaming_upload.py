@@ -62,7 +62,11 @@ class StreamingFormDataHandler(RequestHandler):
             self._buffer = None
 
         boundary = data.find(self._boundary)
-        if boundary != 0:
+        if boundary != 0 and self._disp_buffer is None:
+            self._boundary_length += boundary - self._boundary_padding
+            self._boundary_padding = boundary
+            self._sep = b''.join([data[:boundary], data[:boundary]])
+        elif boundary != 0:
             # boundary not at the begining
             value = data if boundary == -1 else data[:boundary - self._boundary_padding]
             if not self.execute_handle(self.HANDLE_DATA_SUFFIX, value):
