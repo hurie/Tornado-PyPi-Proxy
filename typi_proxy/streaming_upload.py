@@ -19,6 +19,8 @@ class StreamingFormDataHandler(RequestHandler):
     def prepare(self):
         self._boundary = None
         self._boundary_length = None
+        self._boundary_padding = 2
+        self._sep = b'\r\n\r\n'
         self._disp_header = None
         self._disp_params = None
         self._disp_name = None
@@ -36,7 +38,7 @@ class StreamingFormDataHandler(RequestHandler):
                 if v.startswith('"') and v.endswith('"'):
                     v = v[1:-1]
                 self._boundary = b'--' + utf8(v)
-                self._boundary_length = len(self._boundary) + 2
+                self._boundary_length = len(self._boundary) + self._boundary_padding
                 break
 
         if self._boundary is None:
@@ -62,7 +64,7 @@ class StreamingFormDataHandler(RequestHandler):
         boundary = data.find(self._boundary)
         if boundary != 0:
             # boundary not at the begining
-            value = data if boundary == -1 else data[:boundary - 2]
+            value = data if boundary == -1 else data[:boundary - self._boundary_padding]
             if not self.execute_handle(self.HANDLE_DATA_SUFFIX, value):
                 self._disp_buffer += value
 
@@ -80,7 +82,7 @@ class StreamingFormDataHandler(RequestHandler):
             # find next boundary
             boundary = data.find(self._boundary, self._boundary_length)
 
-            eoh = data.find(b'\r\n\r\n')
+            eoh = data.find(self._sep)
             if eoh == -1:
                 if boundary == -1:
                     # header and boundary not found, stream probably cut in the midle of header
@@ -109,10 +111,12 @@ class StreamingFormDataHandler(RequestHandler):
             app_log.debug('disposition name %s', self._disp_name)
 
             # get disposition value and execute begin handler
+            bod = eoh + len(self._sep)
+            eod = boundary - self._boundary_padding
             if boundary == -1:
-                value = data[eoh + 4:]
+                value = data[bod:]
             else:
-                value = data[eoh + 4:boundary - 2]
+                value = data[bod:eod]
             self._disp_buffer = value
             self.execute_handle(self.HANDLE_BEGIN_SUFFIX, value)
 
