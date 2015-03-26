@@ -15,12 +15,12 @@ Installation ::
   typi-proxy setup
   typi-proxy
 
-Update or create `~/.pip/pip.conf` ::
+Update or create ``~/.pip/pip.conf`` ::
 
   [global]
   index-url = http://localhost:5000/simple/
 
-Update or create `cat ~/.pypirc` ::
+Update or create ``~/.pypirc`` ::
 
   [distutils]
   index-servers =
@@ -31,7 +31,7 @@ Update or create `cat ~/.pypirc` ::
   username: admin
   password: admin
 
-Update or create `.pydistutils.cfg` ::
+Update or create ``.pydistutils.cfg`` ::
 
   [easy_install]
   index_url = http://localhost:5000/simple/
